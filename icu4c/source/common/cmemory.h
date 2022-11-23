@@ -101,6 +101,9 @@
 #define uprv_memcmp(buffer1, buffer2, size) U_STANDARD_CPP_NAMESPACE memcmp(buffer1, buffer2,size)
 #define uprv_memchr(ptr, value, num) U_STANDARD_CPP_NAMESPACE memchr(ptr, value, num)
 
+U_CAPI void U_EXPORT2
+fail_on_nth_alloc(size_t n);
+
 U_CAPI void * U_EXPORT2
 uprv_malloc(size_t s) U_MALLOC_ATTR U_ALLOC_SIZE_ATTR(1);
 

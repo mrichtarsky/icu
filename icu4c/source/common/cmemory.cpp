@@ -24,6 +24,7 @@
 #include "cmemory.h"
 #include "putilimp.h"
 #include "uassert.h"
+#include <stdio.h>
 #include <stdlib.h>
 
 /* uprv_malloc(0) returns a pointer to this read-only data. */
@@ -41,6 +42,14 @@ static int n=0;
 static long b=0; 
 #endif
 
+size_t fail_on_alloc = 0;
+
+U_CAPI void U_EXPORT2
+fail_on_nth_alloc(size_t n)
+{
+    fail_on_alloc = n;
+}
+
 U_CAPI void * U_EXPORT2
 uprv_malloc(size_t s) {
 #if U_DEBUG && defined(UPRV_MALLOC_COUNT)
@@ -51,6 +60,14 @@ uprv_malloc(size_t s) {
   fprintf(stderr,"MALLOC\t#%d\t%ul bytes\t%ul total\n", ++n,s,(b+=s)); fflush(stderr);
 #endif
 #endif
+    if (fail_on_alloc > 0) {
+        --fail_on_alloc;
+        if (fail_on_alloc == 0) {
+            printf("malloc(): triggering error\n");
+            return nullptr;
+        }
+    }
+    printf("malloc(): not triggering error\n");
     if (s > 0) {
         if (pAlloc) {
             return (*pAlloc)(pContext, s);

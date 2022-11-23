@@ -40,7 +40,8 @@ public:
     /**
      * test that intl functions work in a multithreaded context
      **/
-    void TestThreadedIntl(void);
+    void TestThreadedIntl1(void);
+    void TestThreadedIntl2(void);
 #endif
     void TestCollators(void);
     void TestString();

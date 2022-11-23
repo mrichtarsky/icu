@@ -63,7 +63,8 @@ void MultithreadTest::runIndexedTest( int32_t index, UBool exec,
     TESTCASE_AUTO_BEGIN;
     TESTCASE_AUTO(TestThreads);
 #if !UCONFIG_NO_FORMATTING
-    TESTCASE_AUTO(TestThreadedIntl);
+    TESTCASE_AUTO(TestThreadedIntl1);
+    TESTCASE_AUTO(TestThreadedIntl2);
 #endif
 #if !UCONFIG_NO_COLLATION
     TESTCASE_AUTO(TestCollators);
@@ -658,36 +659,57 @@ private:
 
 // ** The actual test function.
 
-void MultithreadTest::TestThreadedIntl()
+void MultithreadTest::TestThreadedIntl1()
 {
-    UnicodeString theErr;
+    const char *const locale = "en";
 
-    UErrorCode threadSafeErr = U_ZERO_ERROR;
+    UErrorCode err = U_ZERO_ERROR;
+    UCollator *coll = nullptr;
 
-    ThreadSafeFormatSharedData sharedData(threadSafeErr);
-    assertSuccess(WHERE, threadSafeErr, true);
+    fail_on_nth_alloc(1);
+    coll = ucol_open(locale, &err);
+    fail_on_nth_alloc(0); // disable
 
-    //
-    //  Create and start the test threads
-    //
-    logln("Spawning: %d threads * %d iterations each.",
-                kFormatThreadThreads, kFormatThreadIterations);
-    FormatThreadTest tests[kFormatThreadThreads];
-    int32_t j;
-    for(j = 0; j < UPRV_LENGTHOF(tests); j++) {
-        tests[j].fNum = j;
-        int32_t threadStatus = tests[j].start();
-        if (threadStatus != 0) {
-            errln("%s:%d System Error %d starting thread number %d.",
-                    __FILE__, __LINE__, threadStatus, j);
-            return;
+    if (U_FAILURE(err) || coll == nullptr) {
+        printf("ucol_open() failed, retrying\n");
+        err = U_ZERO_ERROR;
+        coll = ucol_open(locale, &err);
+        if (U_FAILURE(err) || coll == nullptr) {
+            printf("ucol_open() still failing\n");
+        } else {
+            printf("ucol_open() succeeded, call 2\n");
         }
+    } else {
+        printf("ucol_open() succeeded, call 1\n");
     }
+}
 
+void MultithreadTest::TestThreadedIntl2()
+{
+    const char *const locale = "en";
 
-    for (j=0; j<UPRV_LENGTHOF(tests); j++) {
-        tests[j].join();
-        logln("Thread # %d is complete..", j);
+    UErrorCode err = U_ZERO_ERROR;
+    UCollator *coll = nullptr;
+
+    // intialize some structures with 'de' locale
+    coll = ucol_open("de", &err);
+
+    // enable failures, load 'en' locale
+    fail_on_nth_alloc(10);
+    coll = ucol_open(locale, &err);
+    fail_on_nth_alloc(0); // disable
+
+    if (U_FAILURE(err) || coll == nullptr) {
+        printf("ucol_open() failed, retrying\n");
+        err = U_ZERO_ERROR;
+        coll = ucol_open(locale, &err);
+        if (U_FAILURE(err) || coll == nullptr) {
+            printf("ucol_open() still failing\n");
+        } else {
+            printf("ucol_open() succeeded, call 2\n");
+        }
+    } else {
+        printf("ucol_open() succeeded, call 1\n");
     }
 }
 #endif /* #if !UCONFIG_NO_FORMATTING */
